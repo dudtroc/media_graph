@@ -1,0 +1,103 @@
+Scene Graph Conversion Instruction
+============================
+
+0. Scene Number
+- Keep the Scene Number the same as the input meta data.
+
+1. meta block
+- scene_place: Input Place (normalize: lowercase, spaces replaced by underscores)
+- scene_time: Approximate Time (single string)
+- scene_atmosphere: Atmosphere (normalize)
+
+Example:
+{
+  "scene_place": "bridge_with_city_skyline",
+  "scene_time": "night",
+  "scene_atmosphere": "tense_and_emotional"
+}
+
+2. objects block
+All objects must be created in the following format:
+
+{
+  "object_id": 1001,
+  "super_type": "furniture" | "clothing" | "accessory" | "room" | "decor" | "hair_style" | ... (extensible),
+  "type of": "chair" | "jacket" | "window" | "desk" | ... (fine-grained class),
+  "label": "optional name or description",
+  "attributes": {
+    "emotion": "...",       // (only for person)
+    "color of": "...",      // (optional)
+    (extensible) ...
+  }
+}
+
+Rules:
+- object_id: integer (starting from 1001)
+- super_type: (Recommended) Broad conceptual category the object belongs to.
+ - Examples: "furniture", "clothing", "accessory", "room", "decor" ... (extensible)
+ - New categories can be introduced as needed.
+- type of: (Required) Specific, leaf-level class that directly describes the object.
+ - Examples: "chair", "desk", "bookshelf", "window", "smartphone" ... (extensible)
+ - If a segmented class does not exist, it can be created in the same way as "type" content, but it is not typically used.
+- Clothing, accessory, hair_style, etc. must be separate objects, not included inside person.
+- emotion is only included for person objects.
+- Any item with attributes must be created as a separate object node in the objects block.
+
+3. events block
+All events must use the following format:
+
+{
+  "event_id": 3001,
+  "subject": object_id,
+  "verb": "sit" | "approach" | "place" | ... (extensible),
+  "object": object_id (optional),
+  "attribute": "... (extensible)" (optional)
+}
+
+Rules:
+- event_id: integer (starting from 3001)
+- subject can be non-human
+- object and attribute are optional and included as needed
+- The value of "object", object_id, cannot be a list, split into multiple events with same subject/verb/attribute.
+
+4. spatial block
+Describes spatial relationships between objects:
+
+{
+  "spatial_id": 11001,
+  "subject": object_id,
+  "predicate": "wearing" | "hairstyle" | "part_of" | "in" | "leaning_on" | ... (extensible),
+  "object": object_id
+}
+
+Rules:
+- spatial_id: integer (starting from 11001)
+- wearing, hairstyle, etc. are derived from objects block
+- The value of "object", object_id, cannot be a list, split into multiple spatial relations.
+
+5. temporal block
+Describes temporal relationships between events:
+
+{
+  "temporal_id": 21000,
+  "subject": event_id,   // previous event
+  "predicate": "before",
+  "object": event_id     // subsequent event
+}
+
+Rules:
+- temporal_id: integer (starting from 21000)
+- Reflect the sequence of actions
+
+6. Final output structure
+
+{
+  "Scene Number": $SCENE_NUMBER,
+  "scene_graph": {
+    "meta": { ... },
+    "objects": [ ... ],
+    "events": [ ... ],
+    "spatial": [ ... ],
+    "temporal": [ ... ]
+  }
+}

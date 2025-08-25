@@ -1,0 +1,107 @@
+Scene Graph Triple Generation Guideline
+
+Purpose:
+Convert a user’s natural-language query (in English or Korean) into a list of scene-graph-compatible (subject, predicate, object) triples for graph-based visual retrieval.
+Only visually observable, concrete, and semantically clear relations should be used.
+
+
+1. Input Language
+- User queries may be in English or Korean.
+- Output must always be in English.
+
+
+2. Output Format — (Always a list of triples)
+- Use Python-style syntax:
+  [
+      ["super_type:type", predicate, "super_type:type"],
+      ...
+  ]
+- Even for one triple, wrap in a list:
+  → [[subject, predicate, object]]
+- Use None for any unknown or unspecified part.
+
+
+3. Number of Triples
+- Generate 1 to 3 triples only.
+- Include only visually grounded, semantically strong relations.
+- Avoid abstract or symbolic predicates like "marrying", "celebrating", "thinking".
+
+
+4. Entity Format (Subjects or Objects)
+- Format: "super_type:type"
+  Examples: "person:man", "object:ball", "cloth:wedding dress"
+- Use singular nouns only.
+- Do not use:
+  - Plurals (e.g., "people")
+  - Pronouns (e.g., "him", "them")
+  - IDs (e.g., "person_01")
+
+
+5. Predicate Format
+- Must be visually grounded and observable.
+- Allowed examples: "wearing", "holding", "standing", "sitting", "walking", "looking at", "color of", "material of"
+- Disallowed examples: "marrying", "celebrating", "being happy", "getting ready"
+
+
+6. Active and Passive Sentence Handling
+- Active: Subject performs the action
+  Example: "A woman is cleaning."
+  → [["person:woman", "cleaning", None]]
+
+- Passive: Object is being acted upon
+  Example: "The window is being cleaned."
+  → [[None, "cleaning", "object:window"]]
+
+- Never reverse subject and object.
+  ✗ Wrong: [None, "running", "person:person"]
+  ✓ Correct: ["person:person", "running", None]
+
+
+7. Attribute / Adjective Handling
+- Convert descriptive attributes into attribute triples.
+  Examples:
+  - "red wedding dress" → ["cloth:wedding dress", "color of", "red"]
+  - "wooden table" → ["furniture:table", "material of", "wood"]
+
+
+8. Visual Examples
+
+Query: "Find a woman cleaning."
+→ [["person:woman", "cleaning", None]]
+
+Query: "Find the window being cleaned."
+→ [[None, "cleaning", "object:window"]]
+
+Query: "Find a person throwing an orange basketball."
+→ [
+     ["person:person", "throwing", "object:ball"],
+     ["object:ball", "color of", "orange"]
+   ]
+
+Query: "웨딩 씬을 찾아줘."
+→ [
+     ["person:man", "wearing", "cloth:tuxedo"],
+     ["person:woman", "wearing", "cloth:wedding dress"]
+   ]
+
+Query: "남녀가 결혼식장에서 결혼식을 올리는 씬을 찾아줘."
+→ [
+     ["person:man", "wearing", "cloth:tuxedo"],
+     ["person:woman", "wearing", "cloth:wedding dress"],
+     ["object:wedding venue", "location of", None]
+   ]
+
+※ Do NOT generate:
+  ["person:man", "marrying", None]  ← Not visually observable
+  ["person:woman", "celebrating", None]  ← Too abstract
+
+
+9. Restrictions Summary
+- Only include triples that represent directly visible and spatial/physical information.
+- Use "super_type:type" format for all entities.
+- Use attribute relations for describing visual properties.
+- Avoid abstract, symbolic, emotional, or social-context predicates.
+- Never guess; use only what is likely visible in the scene.
+
+
+Query: $CONTENT

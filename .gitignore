@@ -1,0 +1,54 @@
+# 빌드 및 캐시 파일
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# 환경 설정 및 가상 환경
+.env
+.venv/
+venv/
+*.env
+
+# Docker 관련
+docker-compose.override.yml
+docker-compose.override.yaml
+*.pid
+*.sock
+
+# 불필요한 폴더 및 파일
+data/
+images/
+videos/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.flv
+*.webm
+*.gif
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tiff
+*.svg
+*.ico
+*.srt
+*.csv
+
+# Python 및 Jupyter Notebook 관련
+*.ipynb_checkpoints
+*.sqlite3
+
+# VS Code 및 기타 IDE 설정
+.vscode/
+.idea/
+*.sublime-workspace
+
+# 로그 및 임시 파일
+*.log
+*.out
+*.tmp
+*.swp

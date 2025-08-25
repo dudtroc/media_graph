@@ -1,0 +1,114 @@
+FROM nvidia/cuda:12.4.0-devel-ubuntu20.04
+
+# 환경 변수 설정
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
+
+RUN apt -y update \
+    && apt install -y software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa
+
+# 기존 CMake 제거
+RUN apt remove --purge cmake -y  
+
+RUN apt update && apt install -y bash \
+                   build-essential \
+                   vim \
+                   git \
+                   git-lfs \
+                   curl \
+                   cmake \
+                   ninja-build \
+                   ca-certificates \
+                   libsndfile1-dev \
+                   libgl1 \
+                   libavfilter-dev \
+                   libavformat-dev \
+                   libavcodec-dev \
+                   libswresample-dev \
+                   libavutil-dev\
+                   libssl-dev \
+                   libffi-dev \
+                   wget \
+                   ffmpeg \
+                   python3.10 \
+                   python3-pip \
+                   python3.10-dev \
+                   libpython3.10-dev \
+                   python-is-python3 \
+                   python3.10-venv && \             
+    rm -rf /var/lib/apt/lists
+
+# make sure to use venv
+RUN python3.10 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+ENV PATH="/usr/local/cuda-12.4/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/cuda-12.4/lib64:${LD_LIBRARY_PATH}"
+
+# pip 최신화 
+RUN python3.10 -m pip install --upgrade pip && \
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+RUN python3 -m pip install --no-cache-dir setuptools wheel packaging
+
+# 기타 필수 패키지 설치
+RUN python3.10 -m pip install --no-cache-dir ffmpeg-python \
+    pycuda \
+    requests \
+    scenedetect \
+    opencv-python \
+    uvicorn \
+    starlette_context \
+    fastapi \
+    pydantic \
+    python-multipart \
+    colorlog \
+    uuid \
+    transformers \
+    accelerate \
+    flash-attn \
+    openai \
+    anthropic \
+    huggingface_hub
+
+#Intern VL 관련
+RUN python3.10 -m pip install timm \
+    sentencepiece
+
+# Qwen 관련
+RUN python3.10 -m pip install --no-cache-dir qwen-vl-utils[decord]==0.0.10
+    
+# 크롤링을 위한 패키지
+RUN python3.10 -m pip install --no-cache-dir pillow \
+    tqdm \
+    selenium
+
+RUN apt-get update && apt-get install -y \
+    wget curl gnupg ca-certificates && \
+    curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+        > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable \
+    libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 libxss1 \
+    libappindicator3-1 libasound2 libatk-bridge2.0-0 libgtk-3-0 \
+    libx11-xcb1 xvfb --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+# Python 패키지 설치
+RUN pip install selenium webdriver-manager
+
+# 이미지 생성을 위한 패키지
+RUN python3.10 -m pip install --no-cache-dir diffusers \
+    safetensors
+
+# 기본 작업 디렉토리 설정
+WORKDIR /workspace
+
+# 포트 설정
+EXPOSE 10102
+
+CMD ["bash"]
+

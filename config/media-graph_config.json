@@ -1,0 +1,19 @@
+{
+    "NAS_ROOT_PATH": "/workspace/data/media-graph-datasets",
+    "META_TO_GRAPH": {
+        "instruction_path": "config/instruction/meta2graph.txt",
+        "api_key_name": "OPEN_AI_API_KEY",
+        "model":  "gpt-4o",
+        "assistant_name": "meta2graph"
+    },
+    "RETRIEVAL_GRAPH": {
+        "instruction_path": "config/instruction/NL2quary.txt",
+        "api_key_name": "OPEN_AI_API_KEY",
+        "model": "gpt-4o-mini",
+        "temperature": 0.0,
+        "max_tokens": 256,
+        "json_root": "/workspace/diffusion_data/output",
+        "z_cache": "/workspace/diffusion_data/cache",
+        "dataset": "drama_media_data"
+    }
+}

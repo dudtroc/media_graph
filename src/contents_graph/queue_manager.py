@@ -4,8 +4,6 @@ import asyncio
 # from asyncio import Queue
 
 # 모델별 요청 큐
-llava_queue = asyncio.Queue()
-internvl_queue = asyncio.Queue()
 selector_queue = asyncio.Queue()
 meta2graph_queue = asyncio.Queue()
 retrieve_scenegraph_queue = asyncio.Queue()
@@ -18,8 +16,6 @@ task_queue = asyncio.Queue()
 
 # 라우팅 테이블
 ROUTING = {
-    "LLAVA_GUARD": llava_queue,
-    "INTERNVL_GUARD": internvl_queue,
     "FRAME_SELECTOR": selector_queue,
     "SIMPLE_TEST": simple_test_queue,
     "META2GRAPH": meta2graph_queue,

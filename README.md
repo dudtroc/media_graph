@@ -3,7 +3,7 @@
 ## 업데이트 로그  
 | 날짜 | 내용 |
 |------|------|
-| 2025-06-17 | 최초 업로드 |
+| 2025-08-22 | 최초 업로드 |
 
 ---
 
@@ -36,7 +36,7 @@ python run.py [options]
 ## 명령어 및 옵션 설명
 **옵션:**  
 - --log_lev: 로그파일에 기록되는 로그 수준 설정 (default="INFO", help="NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL")
-- --log_file: 로그파일 저장 경로 (default="/workspace/log/media-guard.log")
-- --config_file: 검출 모델 파라미터 설정 파일 경로 (default="/workspace/config/media-guard_config.json)
+- --log_file: 로그파일 저장 경로 (default="/workspace/log/media-graph.log")
+- --config_file: 검출 모델 파라미터 설정 파일 경로 (default="/workspace/config/media-graph_config.json)
 - --ip: API 서버 IP 주소 설정 (default="0.0.0.0")
 - --port: API 서버 포트 번호 (default="10102")

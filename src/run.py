@@ -4,8 +4,6 @@ import uvicorn
 import os
 import asyncio
 
-from contents_graph.models.internvl_guard import InternvlWorker
-
 from contents_graph.meta2graph_worker import Meta2GraphWorker
 from contents_graph.retrieval_graph_worker import RetrievalGraphWorker
 from contents_graph.queue_manager import dispatcher
@@ -13,7 +11,7 @@ from contents_graph.utils import load_config
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette_context.middleware import ContextMiddleware
-from api.router import request_logger, response_logger, GUARD_ROUTER
+from api.router import request_logger, response_logger, GRAPH_ROUTER
 
 app = FastAPI()
 def setup_app(server_name, args):
@@ -31,7 +29,7 @@ def setup_app(server_name, args):
     
     app.state.config = load_config(args.config_file)
     if server_name == "media_graph":
-        app.include_router(GUARD_ROUTER) 
+        app.include_router(GRAPH_ROUTER) 
     else:
         logger.error(f'Not supported type: {server_name}')
         return None
@@ -47,7 +45,7 @@ async def startup_event():
     os.makedirs(root_path, exist_ok=True)
 
     # for idx, device in enumerate(config["contents_graph"]["WOKERS_DEVICE"]):
-    #     intern_worker = InternvlWorker(config=config["contents_graph"], root_path=root_path, device=device, worker_id=f"guard_worker-{idx}")
+    #     intern_worker = InternvlWorker(config=config["contents_graph"], root_path=root_path, device=device, worker_id=f"graph_worker-{idx}")
     #     asyncio.create_task(intern_worker.run())
 
     # for idx, device in enumerate(config["FRAME_SELECTOR"]["WOKERS_DEVICE"]):
@@ -65,8 +63,8 @@ async def startup_event():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--log_lev", type=str, default="INFO", help="NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL")
-    parser.add_argument("--log_file", type=str, default="/workspace/log/media-guard.log")
-    parser.add_argument("--config_file", type=str, default="/workspace/config/media-guard_config.json")
+    parser.add_argument("--log_file", type=str, default="/workspace/log/media-graph.log")
+    parser.add_argument("--config_file", type=str, default="/workspace/config/media-graph_config.json")
     parser.add_argument("--ip", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=str, default="10102")
     args = parser.parse_args()

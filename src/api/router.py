@@ -12,7 +12,7 @@ from contents_graph.queue_manager import task_queue
 base_url='api'
 main_router_url = f"/{base_url}"
 
-GUARD_ROUTER = APIRouter (
+GRAPH_ROUTER = APIRouter (
     prefix=main_router_url
 )
 
@@ -38,7 +38,7 @@ async def response_logger(request: Request, call_next):
     return response
     
 
-@GUARD_ROUTER.post("/v1/meta-to-scenegraph", response_model=BaseResponse)
+@GRAPH_ROUTER.post("/v1/meta-to-scenegraph", response_model=BaseResponse)
 async def analyze_meta2graph(request: MetaToSceneGraphRequest):
     logger = logger_init.get_logger()
     logger.info(f"Meta-to-SceneGraph Request: {request}")
@@ -59,7 +59,7 @@ async def analyze_meta2graph(request: MetaToSceneGraphRequest):
         raise HTTPException(status_code=404, detail=f"Failed to create task")
     
 
-@GUARD_ROUTER.get("/v1/meta-to-scenegraph/{jobid}", response_model=Meta2GraphStatusResponse)
+@GRAPH_ROUTER.get("/v1/meta-to-scenegraph/{jobid}", response_model=Meta2GraphStatusResponse)
 async def get_meta2graph_status(jobid: str):
     logger = logger_init.get_logger()
     task = get_task(jobid)
@@ -81,7 +81,7 @@ async def get_meta2graph_status(jobid: str):
         raise HTTPException(status_code=404, detail="Unknown task status")
 
 
-@GUARD_ROUTER.delete("/v1/meta-to-scenegraph/{jobid}", response_model=Meta2GraphStatusResponse)
+@GRAPH_ROUTER.delete("/v1/meta-to-scenegraph/{jobid}", response_model=Meta2GraphStatusResponse)
 async def cancel_meta2graph_task_endpoint(jobid: str):
     logger = logger_init.get_logger()
     
@@ -103,7 +103,7 @@ async def cancel_meta2graph_task_endpoint(jobid: str):
 
 
 
-@GUARD_ROUTER.post("/v1/retrieve-scenegraph", response_model=BaseResponse)
+@GRAPH_ROUTER.post("/v1/retrieve-scenegraph", response_model=BaseResponse)
 async def retrieve_scenegraph(request: RetrivalGraphRequest):
     logger = logger_init.get_logger()
     logger.info(f"Retrieve-Scenegraph Request: {request}")
@@ -124,7 +124,7 @@ async def retrieve_scenegraph(request: RetrivalGraphRequest):
         raise HTTPException(status_code=404, detail=f"Failed to create task")
     
 
-@GUARD_ROUTER.get("/v1/retrieve-scenegraph/{jobid}", response_model=RetrivalGraphStatusResponse)
+@GRAPH_ROUTER.get("/v1/retrieve-scenegraph/{jobid}", response_model=RetrivalGraphStatusResponse)
 async def get_retrieve_scenegraph_status(jobid: str):
     logger = logger_init.get_logger()
     task = get_task(jobid)
@@ -146,7 +146,7 @@ async def get_retrieve_scenegraph_status(jobid: str):
         raise HTTPException(status_code=404, detail="Unknown task status")
 
 
-@GUARD_ROUTER.delete("/v1/retrieve-scenegraph/{jobid}", response_model=RetrivalGraphStatusResponse)
+@GRAPH_ROUTER.delete("/v1/retrieve-scenegraph/{jobid}", response_model=RetrivalGraphStatusResponse)
 async def cancel_retrieve_scenegraph_task_endpoint(jobid: str):
     logger = logger_init.get_logger()
     

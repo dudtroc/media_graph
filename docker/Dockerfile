@@ -50,29 +50,6 @@ RUN /opt/venv/bin/pip install --no-cache-dir flash-attn==2.7.4.post1 --find-link
 COPY requirements.txt /tmp/requirements.txt
 RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
-# NVIDIA Codec 헤더 설치 - 특정 버전 사용
-RUN git clone https://github.com/FFmpeg/nv-codec-headers.git /opt/nv-codec-headers && \
-    cd /opt/nv-codec-headers && \
-    git checkout n11.1.5.2 && \
-    make && make install
-
-# NVIDIA Video Codec SDK 수동 복사 (스텁 라이브러리 생성)
-COPY Video_Codec_SDK_12.1.14.zip /opt/
-
-RUN cd /opt && \
-    unzip Video_Codec_SDK_12.1.14.zip && \
-    mkdir -p /usr/local/cuda/include && \
-    cp -a Video_Codec_SDK_12.1.14/Interface/. /usr/local/cuda/include/ && \
-    # 스텁 라이브러리 생성
-    echo "Creating NVENC stub library..." && \
-    mkdir -p /usr/local/cuda/lib64/stubs && \
-    gcc -fPIC -shared -o /usr/local/cuda/lib64/stubs/libnvidia-encode.so \
-        -Wl,-soname,libnvidia-encode.so.1 -x c /dev/null && \
-    ln -s /usr/local/cuda/lib64/stubs/libnvidia-encode.so \
-        /usr/local/cuda/lib64/stubs/libnvidia-encode.so.1 && \
-    ln -s /usr/local/cuda/lib64/stubs/libnvidia-encode.so.1 \
-        /usr/local/lib/libnvidia-encode.so.1
-
 # 라이브러리 경로 설정
 ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:/usr/local/lib:${LD_LIBRARY_PATH}

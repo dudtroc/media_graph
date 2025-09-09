@@ -24,7 +24,7 @@ load_dotenv()
 # 검색 관련 상수
 DATASET = "drama_media_data"  # "dummy" or "media_data" or "drama_media_data"
 JSON_ROOT = Path(f"/media_data/output/{DATASET}/scene_graph_class/gpt-4o")
-Z_CACHE = Path(f"/media_data//cache/cached_graphs_{DATASET}_embed_fixed_z_ver1+2")
+Z_CACHE = Path(f"/media_data/cache/cached_graphs_{DATASET}_embed_fixed_z_ver1+2")
 BERT_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 TOP_K = 5

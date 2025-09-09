@@ -2,11 +2,19 @@ import os
 import json
 import cv2
 import time
+import numpy as np
 
 import logger_init
 from collections import Counter
 from typing import List, Dict
-from skimage.metrics import structural_similarity as ssim
+
+# skimage import를 조건부로 처리
+try:
+    from skimage.metrics import structural_similarity as ssim
+    SKIMAGE_AVAILABLE = True
+except ImportError:
+    SKIMAGE_AVAILABLE = False
+    ssim = None
 
 # Reading json config file
 def read_config(config_file):
@@ -197,6 +205,12 @@ def load_config(config_path: str) -> dict:
     
 
 def compute_ssim_diff(f1, f2):
+    if not SKIMAGE_AVAILABLE:
+        logger.warning("skimage not available, using basic difference instead")
+        # 기본적인 차이 계산 (간단한 픽셀 차이)
+        diff = cv2.absdiff(f1, f2)
+        return np.mean(diff) / 255.0
+    
     f1_gray = cv2.cvtColor(f1, cv2.COLOR_BGR2GRAY)
     f2_gray = cv2.cvtColor(f2, cv2.COLOR_BGR2GRAY)
     score, _ = ssim(f1_gray, f2_gray, full=True)

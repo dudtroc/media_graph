@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: media-graph-rabbitmq
+    ports:
+      - "5673:5672"    # AMQP port
+      - "15673:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - media-graph-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: media-graph-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - media-graph-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: media-graph-api
+    ports:
+      - "10105:10102"
+    environment:
+      - CELERY_BROKER_URL=amqp://admin:admin123@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/workspace:/workspace/src
+    volumes:
+      - .:/workspace
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - media-graph-network
+    working_dir: /workspace
+    command: ["sh", "-c", "cd /workspace && export PYTHONPATH=/workspace:/workspace/src && /opt/venv/bin/python src/run.py --ip 0.0.0.0 --port 10102"]
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: media-graph-celery-worker
+    environment:
+      - CELERY_BROKER_URL=amqp://admin:admin123@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/workspace:/workspace/src
+    volumes:
+      - .:/workspace
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - media-graph-network
+    working_dir: /workspace
+    command: ["sh", "-c", "cd /workspace && export PYTHONPATH=/workspace:/workspace/src && /opt/venv/bin/celery -A src.contents_graph.celery_app worker --loglevel=info --concurrency=2 --queues=meta2graph_queue,retrieval_graph_queue"]
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  media-graph-network:
+    driver: bridge

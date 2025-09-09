@@ -53,23 +53,18 @@ if [ "$mode" == "build" ]; then
   echo "Docker image built successfully!"
   
 elif [ "$mode" == "run" ]; then
-  # Run the Docker container
-  xhost +
-  # docker run --gpus all -it --rm -p 10102:10102 -v $(pwd):/media-benchmark -e DISPLAY=$DISPLAY media-benchmark:1.0
-  #docker run --gpus all -it --rm -v $(pwd):/workspace -v /media/ktva/DATA10TB/kt_benchmark:/workspace/data -e DISPLAY=$DISPLAY media-shot-detect:1.0
-  # docker run --gpus all -it --rm -p 10102:10102 -v $(pwd):/workspace -v /media/ktva/DATA10TB:/workspace/data --net=host -e DISPLAY=$DISPLAY media-graph:1.0
+  # Run with Docker Compose (RabbitMQ + Redis + API + Celery Worker)
+  echo "Starting Media Graph services with Docker Compose..."
+  echo "This will start:"
+  echo "  - RabbitMQ (port 5673, management UI: 15673)"
+  echo "  - Redis (port 6380)"
+  echo "  - API Server (port 10105)"
+  echo "  - Celery Worker"
+  echo ""
+  echo "To access RabbitMQ management UI: http://localhost:15673 (admin/admin123)"
+  echo "To access API: http://localhost:10105"
+  echo ""
   
-  # RetrievalGraphConverter에서 사용하는 경로들을 마운트
-  # - /home/ktva/PROJECT/Diffusion/GP_adapter/output -> /workspace/diffusion_data/output
-  # - /home/ktva/PROJECT/Diffusion/GP_adapter/cache -> /workspace/diffusion_data/cache
-  docker run --gpus all -it --rm -p 10102:10102 \
-    -v $(pwd):/workspace \
-    -v /home/ktva/PROJECT/Diffusion/GP_adapter/output:/media_data/output \
-    -v /home/ktva/PROJECT/Diffusion/GP_adapter/cache:/media_data/cache \
-    --net=host \
-    -e DISPLAY=$DISPLAY \
-    media-graph:1.0
-  
-  # Execute the run command
-  # ...
+  # Docker Compose로 모든 서비스 시작
+  docker-compose up
 fi

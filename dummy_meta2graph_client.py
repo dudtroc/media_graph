@@ -128,7 +128,7 @@ def wait_for_task_completion(base_url, jobid, max_wait_time=300, check_interval=
 
 def test_meta2graph_json(json_file_path=None):
     """사용자 정의 JSON 데이터 테스트"""
-    base_url = "http://localhost:10102"
+    base_url = "http://localhost:10105"
     
     print("\n🔧 Custom JSON Test")
     print("=" * 30)
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     import sys
     
     print("🚀 Starting JSON Tests...")
-    print("Make sure the server is running on http://localhost:10102")
+    print("Make sure the server is running on http://localhost:10105")
     print("=" * 50)
     
     # 사용자 정의 JSON 테스트 (명령줄 인수로 파일 경로 지정 가능)

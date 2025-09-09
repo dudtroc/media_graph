@@ -122,9 +122,9 @@ def wait_for_task_completion(base_url, jobid, max_wait_time=300, check_interval=
                     print(f"✅ 작업 완료! 결과 수신 중...")
                     
                     # 결과를 깔끔하게 포맷팅하여 출력
-                    result_data = result.get('result', [])
-                    if result_data and len(result_data) > 0:
-                        first_result = result_data[0]["result"]
+                    result_data = result.get('result', {})
+                    if result_data and 'result' in result_data:
+                        first_result = result_data["result"]
                         if 'search_results' in first_result:
                             print(f"\n📋 질문: {first_result.get('question', 'N/A')}")
                             print(f"🔗 추출된 트리플: {first_result.get('triples', [])}")
@@ -201,7 +201,7 @@ def wait_for_task_completion(base_url, jobid, max_wait_time=300, check_interval=
 
 def test_retrieve_scenegraph_question(question="남녀가 키스하는 장면을 찾아줘.", tau=0.30, top_k=5):
     """직접 질문을 입력하여 retrieve-scenegraph API 테스트"""
-    base_url = "http://localhost:10102"
+    base_url = "http://localhost:10105"
     
     print(f"\n🔧 Retrieve-Scenegraph API Test - Direct Question")
     print("=" * 50)
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     import sys
     
     print("🚀 Starting Retrieve-Scenegraph API Tests...")
-    print("Make sure the server is running on http://localhost:10102")
+    print("Make sure the server is running on http://localhost:10105")
     print("=" * 60)
     
     # 1. 기본 질문으로 테스트

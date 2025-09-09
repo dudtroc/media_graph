@@ -152,6 +152,9 @@ class MetaToGraphConverter:
         Returns:
             Optional[Dict[str, Any]]: 변환된 장면 그래프 또는 None (실패 시)
         """
+        print(f"[MetaToGraphConverter] __call__ 메서드 호출됨 - meta_data: {type(meta_data)}")
+        print(f"[MetaToGraphConverter] scene_number: {scene_number}")
+        
         try:
             # scene_number 추출
             if scene_number is None:

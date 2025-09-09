@@ -4,9 +4,6 @@ import uvicorn
 import os
 import asyncio
 
-from contents_graph.meta2graph_worker import Meta2GraphWorker
-from contents_graph.retrieval_graph_worker import RetrievalGraphWorker
-from contents_graph.queue_manager import dispatcher
 from contents_graph.utils import load_config
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
@@ -15,6 +12,9 @@ from api.router import request_logger, response_logger, GRAPH_ROUTER
 
 app = FastAPI()
 def setup_app(server_name, args):
+    # logger 초기화
+    logger = logger_init.get_logger()
+    
     app.middleware('http')(request_logger)
     app.middleware('http')(response_logger)
     app.add_middleware(
@@ -39,28 +39,34 @@ def setup_app(server_name, args):
 @app.on_event("startup")
 async def startup_event():
     config = app.state.config  # 여기서 사용 가능
-    asyncio.create_task(dispatcher())
-
+    logger = logger_init.get_logger()
+    
+    # NAS 루트 경로 생성
     root_path = config["NAS_ROOT_PATH"]
     os.makedirs(root_path, exist_ok=True)
-
-    # for idx, device in enumerate(config["contents_graph"]["WOKERS_DEVICE"]):
-    #     intern_worker = InternvlWorker(config=config["contents_graph"], root_path=root_path, device=device, worker_id=f"graph_worker-{idx}")
-    #     asyncio.create_task(intern_worker.run())
-
-    # for idx, device in enumerate(config["FRAME_SELECTOR"]["WOKERS_DEVICE"]):
-    #     selector_worker = FrameSelector(config=config["FRAME_SELECTOR"], root_path=root_path, device=device, worker_id=f"selector_worker-{idx}")
-    #     asyncio.create_task(selector_worker.run())
-        
-    # Meta2Graph 워커 시작
-    meta2graph_worker = Meta2GraphWorker(worker_id="meta2graph-worker-0", meta2graph_config=config["META_TO_GRAPH"])
-    asyncio.create_task(meta2graph_worker.run())
     
-    # RetrievalGraph 워커 시작
-    retrieval_graph_worker = RetrievalGraphWorker(worker_id="retrieval-graph-worker-0", retrieval_graph_config=config["RETRIEVAL_GRAPH"])
-    asyncio.create_task(retrieval_graph_worker.run())
+    # 설정을 app.state에 저장 (context는 request cycle에서만 사용 가능)
+    app.state.config = config
+    
+    # Celery 연결 테스트
+    try:
+        from contents_graph.task_manager import task_manager
+        # Redis 연결 테스트
+        task_manager.redis_client.ping()
+        logger.info("Redis connection successful")
+        
+        # Celery 브로커 연결 테스트
+        from contents_graph.celery_app import celery_app
+        celery_app.control.inspect().stats()
+        logger.info("Celery broker connection successful")
+        
+    except Exception as e:
+        logger.error(f"Failed to connect to Redis or Celery broker: {e}")
+        raise
+    
+    logger.info("Media Graph API server started with Celery backend")
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--log_lev", type=str, default="INFO", help="NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL")
     parser.add_argument("--log_file", type=str, default="/workspace/log/media-graph.log")
@@ -85,3 +91,6 @@ if __name__ == "__main__":
         exit(1)
 
     uvicorn.run(app, host=args.ip, port=int(args.port))
+
+if __name__ == "__main__":
+    main()

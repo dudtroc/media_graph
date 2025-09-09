@@ -48,3 +48,5 @@ class RetrivalGraphStatusResponse(BaseModel):
 class RetrivalGraphRequest(BaseModel):
     """RetrivalGraph 요청을 위한 스키마"""
     query: str
+    tau: float = 0.3
+    top_k: int = 5

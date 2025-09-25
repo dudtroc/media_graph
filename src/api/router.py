@@ -56,7 +56,10 @@ async def analyze_meta2graph(request: MetaToSceneGraphRequest):
     # Meta2Graph 태스크를 Celery에 제출
     task_id = task_manager.submit_meta2graph_task(
         metadata=request.metadata,
-        config=config["META_TO_GRAPH"]
+        video_info=request.video_info,
+        meta2graph_config=config["META_TO_GRAPH"],
+        graph_anlayzer_config=config["SCENE_GRAPH_ANALYZER"],
+        db_config=config["SCENE_GRAPH_DB"]
     )
 
     if task_id:

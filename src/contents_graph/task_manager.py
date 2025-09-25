@@ -117,12 +117,12 @@ class TaskManager:
             json.dumps(task_info)
         )
     
-    def submit_meta2graph_task(self, metadata: dict, config: dict) -> str:
+    def submit_meta2graph_task(self, metadata: dict, video_info: dict, meta2graph_config: dict, graph_anlayzer_config: dict, db_config: dict) -> str:
         """Meta2Graph 태스크를 Celery에 제출"""
         task_id = self.create_task({"metadata": metadata}, "meta2graph")
         
         # Celery 태스크 제출
-        celery_task = process_meta2graph.delay(metadata, config)
+        celery_task = process_meta2graph.delay(metadata, video_info, meta2graph_config, graph_anlayzer_config, db_config)
         
         # Redis에 Celery 태스크 ID 저장
         task_info = self.get_task(task_id)

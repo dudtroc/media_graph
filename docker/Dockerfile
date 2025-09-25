@@ -32,10 +32,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN /opt/venv/bin/pip install --upgrade pip
 RUN /opt/venv/bin/pip install --no-cache-dir setuptools wheel packaging
 
-# requirements.txt 파일을 복사하고 라이브러리 설치
-COPY requirements.txt /tmp/requirements.txt
-RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
-
 # 작업 디렉토리 및 포트
 WORKDIR /workspace
 
@@ -45,8 +41,12 @@ ENV PYTHONPATH="/workspace:/workspace/src"
 # 필요한 디렉토리 생성
 RUN mkdir -p /workspace/log /workspace/config
 
-# 전체 프로젝트 복사 (볼륨 마운트로 런타임에 오버라이드됨)
+# 전체 프로젝트 복사
 COPY . /workspace/
+
+# 프로젝트 복사 후 패키지 설치 (마지막에 실행)
+RUN /opt/venv/bin/pip install --no-cache-dir -r /workspace/requirements-pytorch.txt
+RUN /opt/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt
 
 EXPOSE 10102
 CMD ["bash"]

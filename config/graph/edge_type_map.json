@@ -1,0 +1,11 @@
+{
+  "event_before_event": 0,
+  "event_object_of_event_object": 1,
+  "event_to_scene_scene": 2,
+  "object_subject_of_event_event": 3,
+  "object_subject_of_spatial_spatial": 4,
+  "object_to_scene_scene": 5,
+  "scene_in_scene_event": 6,
+  "scene_in_scene_object": 7,
+  "spatial_object_of_spatial_object": 8
+}

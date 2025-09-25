@@ -126,7 +126,7 @@ def wait_for_task_completion(base_url, jobid, max_wait_time=300, check_interval=
             time.sleep(check_interval)
 
 
-def test_meta2graph_json(json_file_path=None):
+def test_meta2graph_json(json_file_path=None, video_info=None):
     """사용자 정의 JSON 데이터 테스트"""
     base_url = "http://localhost:10105"
     
@@ -158,7 +158,10 @@ def test_meta2graph_json(json_file_path=None):
         }
 
     # metadata 필드로 감싸기
-    request_data = {"metadata": custom_data}
+    request_data = {
+        "metadata": custom_data,
+        "video_info": video_info
+    }
     
     print(f"📤 Sending request data:")
     print(json.dumps(request_data, indent=2, ensure_ascii=False))
@@ -195,6 +198,8 @@ def test_meta2graph_json(json_file_path=None):
                 print("💡 서버가 작업을 큐에 넣었습니다. 이제 상태를 주기적으로 체크합니다.")
                 # 2. 작업 완료까지 주기적으로 상태 체크
                 final_result = wait_for_task_completion(base_url, jobid)
+
+            
                 if final_result:
                     print("🎉 전체 테스트 완료!")
                     return True
@@ -223,6 +228,14 @@ def test_meta2graph_json(json_file_path=None):
         print(f"❌ 예상치 못한 오류: {e}")
         return False
 
+def generate_video_unique_id(drama_name: str, episode_number: str) -> int:
+    """비디오 고유 ID 생성"""
+    # 간단한 해시 기반 ID 생성
+    import hashlib
+    content = f"{drama_name}_{episode_number}"
+    hash_obj = hashlib.md5(content.encode())
+    return int(hash_obj.hexdigest()[:8], 16)
+
 
 if __name__ == "__main__":
     import sys
@@ -233,6 +246,22 @@ if __name__ == "__main__":
     
     # 사용자 정의 JSON 테스트 (명령줄 인수로 파일 경로 지정 가능)
     json_file_path = "data/test/Kingdom_EP01_visual_3135-7977_(00_02_11-00_05_33)_meta_info.json"
-    test_meta2graph_json(json_file_path)
+
+    video_unique_id = ""
+    drama_name = "Kingdom"
+    episode_number = "EP01"
+    start_frame = 3135
+    end_frame = 7977
+    video_unique_id = generate_video_unique_id(drama_name, episode_number)
+
+    video_info = {
+        "video_unique_id": video_unique_id,
+        "drama_name": drama_name,
+        "episode_number": episode_number,
+        "start_frame": start_frame,
+        "end_frame": end_frame
+    }
+
+    test_meta2graph_json(json_file_path, video_info=video_info)
     
     print("\n✨ All tests completed!")

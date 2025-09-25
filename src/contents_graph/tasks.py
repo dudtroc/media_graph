@@ -13,6 +13,8 @@ load_dotenv()
 from .celery_app import celery_app
 from .core.meta_to_graph_converter import MetaToGraphConverter
 from .core.retrieval_graph_converter import RetrievalGraphConverter
+from .core.scene_graph_analyzer import SceneGraphAnalyzer
+from src.db.scene_graph_client import SceneGraphDBClient
 
 # 로거 초기화
 try:
@@ -30,7 +32,7 @@ except:
     logging.basicConfig(level=logging.INFO)
 
 @celery_app.task(bind=True, name='src.contents_graph.tasks.process_meta2graph')
-def process_meta2graph(self, metadata, meta2graph_config):
+def process_meta2graph(self, metadata, video_info, meta2graph_config, graph_anlayzer_config, db_config):
     """
     Meta-to-SceneGraph 작업을 처리하는 Celery 태스크
     """
@@ -73,11 +75,37 @@ def process_meta2graph(self, metadata, meta2graph_config):
         print(f"[Celery Task] converter(metadata) 호출 완료 - 결과: {type(scene_graph)}")
         
         # 진행률 업데이트
+        self.update_state(state='PROGRESS', meta={'progress': 50.0, 'status': 'Processing metadata...'})
+
+        analyzer = SceneGraphAnalyzer(
+            model_path=graph_anlayzer_config["model_path"],
+            edge_map_path=graph_anlayzer_config["edge_map_path"],
+            sbert_model=graph_anlayzer_config["sbert_model"]
+        )
+        
+        embedding_result = analyzer.analyze_scene_graph(scene_graph)
+        
+        # 진행률 업데이트
         self.update_state(state='PROGRESS', meta={'progress': 75.0, 'status': 'Finalizing...'})
+        
+        scene_graph_client = SceneGraphDBClient(
+            db_api_base_url = db_config.get("db_api_base_url")
+            )
+        
+        scene_graph_client.upload_scene_graph_with_pt(
+            scene_data=scene_graph,
+            embedding_info=embedding_result,
+            video_unique_id=video_info.get("video_unique_id"),
+            drama_name=video_info.get("drama_name"),
+            episode_number=video_info.get("episode_number"),
+            start_frame=video_info.get("start_frame"),
+            end_frame=video_info.get("end_frame")
+        )
         
         # 결과 반환
         result = {
             "scene_graph": scene_graph,
+            # "embedding_result": embedding_result,
             "processed_at": time.time(),
             "task_id": task_id,
             "worker_id": f"celery-worker-{os.getpid()}"

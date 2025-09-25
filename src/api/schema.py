@@ -37,6 +37,7 @@ class Meta2GraphStatusResponse(BaseModel):
 class MetaToSceneGraphRequest(BaseModel):
     """meta-to-scenegraph 요청을 위한 스키마"""
     metadata: Dict[str, Any]
+    video_info: Optional[Dict[str, Any]] = None
 
 class RetrivalGraphStatusResponse(BaseModel):
     """RetrivalGraph 전용 상태 응답 스키마"""

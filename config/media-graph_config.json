@@ -1,5 +1,13 @@
 {
     "NAS_ROOT_PATH": "/workspace/data/media-graph-datasets",
+    "SCENE_GRAPH_DB": {
+        "db_api_base_url": "http://scene_graph_api_server:8000"
+    },
+    "SCENE_GRAPH_ANALYZER": {
+        "model_path": "model/graph/embed_triplet_struct_ver1+2/best_model.pt",
+        "edge_map_path": "config/graph/edge_type_map.json",
+        "sbert_model": "sentence-transformers/all-MiniLM-L6-v2"
+    },
     "META_TO_GRAPH": {
         "instruction_path": "config/instruction/meta2graph.txt",
         "api_key_name": "OPEN_AI_API_KEY",

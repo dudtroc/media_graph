@@ -5,7 +5,7 @@ mode="nothing"
 clean_build=false
 
 # Parse command-line options
-while getopts "brc" opt; do
+while getopts "brcd" opt; do
   case $opt in
     b)
       mode="build"
@@ -16,6 +16,9 @@ while getopts "brc" opt; do
     c)
       clean_build=true
       ;;
+    d)
+      mode="stop"
+      ;;
     *)
       echo "Invalid option: -$OPTARG >&2"
       exit 1
@@ -24,8 +27,8 @@ while getopts "brc" opt; do
 done
 
 # Check if the chosen mode is supported
-if [ "$mode" != "build" ] && [ "$mode" != "run" ]; then
-  echo "Unsupported mode use ['-b' / '-r']" >&2
+if [ "$mode" != "build" ] && [ "$mode" != "run" ] && [ "$mode" != "stop" ]; then
+  echo "Unsupported mode use ['-b' / '-r' / '-d']" >&2
   exit 1
 fi
 
@@ -47,10 +50,18 @@ if [ "$mode" == "build" ]; then
     echo "Cleanup completed."
   fi
   
-  # Build the Docker image
-  echo "Building Docker image..."
+  # Build all Docker images
+  echo "Building all Docker images..."
+  
+  # Build main media-graph image
+  echo "Building media-graph:1.0..."
   docker build -t media-graph:1.0 -f ./docker/Dockerfile .
-  echo "Docker image built successfully!"
+  
+  # Build all services with docker-compose (no-cache to ensure fresh build)
+  echo "Building all services with docker-compose..."
+  docker-compose build --no-cache
+  
+  echo "All Docker images built successfully!"
   
 elif [ "$mode" == "run" ]; then
   # Run with Docker Compose (RabbitMQ + Redis + API + Celery Worker)
@@ -65,6 +76,43 @@ elif [ "$mode" == "run" ]; then
   echo "To access API: http://localhost:10105"
   echo ""
   
-  # Docker Compose로 모든 서비스 시작
-  docker-compose up
+  # Docker Compose로 모든 서비스 시작 (빌드 없이)
+  docker-compose up --no-build
+
+elif [ "$mode" == "stop" ]; then
+  # Stop all running Docker services
+  echo "Stopping Media Graph services..."
+  echo "This will stop:"
+  echo "  - RabbitMQ"
+  echo "  - Redis" 
+  echo "  - API Server"
+  echo "  - Celery Worker"
+  echo ""
+  
+  # Stop docker-compose services first
+  echo "Stopping docker-compose services..."
+  docker-compose down 2>/dev/null || echo "No docker-compose services running or already stopped"
+  
+  # Stop containers by their specific names (more reliable)
+  echo "Stopping containers by name..."
+  
+  # Stop and remove specific containers
+  for container_name in "media-graph-rabbitmq" "media-graph-redis" "media-graph-api" "media-graph-celery-worker"; do
+    if docker ps -q -f name=$container_name | grep -q .; then
+      echo "Stopping $container_name..."
+      docker stop $container_name 2>/dev/null || true
+      docker rm $container_name 2>/dev/null || true
+    else
+      echo "$container_name is not running"
+    fi
+  done
+  
+  # Also stop any containers using the media-graph images (fallback)
+  echo "Stopping any remaining containers using media-graph images..."
+  docker ps -a --filter ancestor=media-graph-api -q | xargs -r docker stop 2>/dev/null || true
+  docker ps -a --filter ancestor=media-graph-api -q | xargs -r docker rm -f 2>/dev/null || true
+  docker ps -a --filter ancestor=media-graph-celery-worker -q | xargs -r docker stop 2>/dev/null || true
+  docker ps -a --filter ancestor=media-graph-celery-worker -q | xargs -r docker rm -f 2>/dev/null || true
+  
+  echo "All Media Graph services have been stopped."
 fi

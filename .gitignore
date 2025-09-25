@@ -18,6 +18,7 @@ docker-compose.override.yaml
 *.sock
 
 # 불필요한 폴더 및 파일
+model/
 test/
 log/
 data/
